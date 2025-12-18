@@ -1,15 +1,16 @@
 import * as THREE from 'three';
-import { getDiscogList } from './DiscogList.js';
+import { FetchDiscogList } from './DiscogList.js';
+import { Loader } from 'three/webgpu';
 
-import coverImage from './CoverImage.jpg';
+const fetchedLps = await FetchDiscogList();
+const textureLoader = new THREE.TextureLoader();
 
-// var data = new Array(getDiscogList());
+const rightButton = document.getElementById('right-button');
+const leftButton = document.getElementById('left-button');
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(90,window.innerWidth / window.innerHeight,0.1,1000);
-
-const loader = new THREE.TextureLoader().load(coverImage);
 
 const lps = new Array();
 let lpIndex = 0;  
@@ -28,51 +29,71 @@ function AddLps(){
   let position =  0;
   let zPos = 20;
 
-  const geomtry = new THREE.BoxGeometry(10,10,.1);
+  const geometry = new THREE.BoxGeometry(10, 10, .1);
 
+  for (let i = 0; i < fetchedLps.length; i++) {
+    const lpData = fetchedLps[i];
+    const coverImageUrl = lpData.basic_information.cover_image;
 
-  const materials = [
-    new THREE.MeshBasicMaterial({color: 0xb5110b}), // right
-    new THREE.MeshBasicMaterial({color: 0xb5110b}), // left
-    new THREE.MeshBasicMaterial({color: 0xb5110b}), // top
-    new THREE.MeshBasicMaterial({color: 0xb5110b}), // bottom 
-    new THREE.MeshBasicMaterial({map:loader}), // front
-    new THREE.MeshBasicMaterial({color: 0xb5110b}), // back
-  ];
+    const textureLoader = new THREE.TextureLoader();
+    textureLoader.crossOrigin = 'slXelsFzPmkDSOXLZoxAjegaABgyxeLIzcgQCtlH';
+    const texture = textureLoader.load(coverImageUrl);
 
-  for (let i = 0; i < 5; i++) {
-    const cube = new THREE.Mesh(geomtry, materials);
+    // Create initial materials with placeholder
+    const materials = [
+      new THREE.MeshBasicMaterial({color: 0xb5110b}), // right
+      new THREE.MeshBasicMaterial({color: 0xb5110b}), // left
+      new THREE.MeshBasicMaterial({color: 0xb5110b}), // top
+      new THREE.MeshBasicMaterial({color: 0xb5110b}), // bottom 
+      new THREE.MeshBasicMaterial({map: texture}), // front (placeholder)
+      new THREE.MeshBasicMaterial({color: 0xb5110b}), // back
+    ];
 
-    cube.position.set(position, 0 ,zPos);
-
+    const cube = new THREE.Mesh(geometry, materials);
+    cube.position.set(position, 0, zPos);
     position += cube.geometry.parameters.width + 5;
-    // zPos -= 10;
 
     scene.add(cube);
     lps.push(cube);
   }
-
 }
 
-function MoveLps(){
+//moves the lps to the left
+function MoveLeft(){
+  lpIndex--;
+
+  if(lpIndex < 0){
+    lpIndex = 0;
+    return;
+  }
+
   lps.forEach(element => {
-    element.position.x -= lps[0].geometry.parameters.width + 5;  
+    element.position.x += lps[0].geometry.parameters.width + 5;  
   });
-  // for (let i = lpIndex; i < lps.length; i++) {
-  //   lps[i].position.x += currentLpPosition.x;
-  //   lps[i].position.z -= currentLpPosition.z;
-  // }
 }
 
-document.body.onmouseup = MoveLps;
+//moves the lps to the right
+function MoveRight(){
+  lpIndex++;  
+
+  if(lpIndex > lps.length - 1){
+    lpIndex = lps.length - 1;
+    return;
+  }
+
+  lps.forEach(element => {
+  element.position.x -= lps[0].geometry.parameters.width + 5;  
+  });
+
+}
+
+leftButton.addEventListener('click', MoveLeft);
+rightButton.addEventListener('click', MoveRight);
 
 AddLps();
 
 function animate(){
   requestAnimationFrame(animate);
-
-  lps.forEach(lp =>{
-  })
 
   renderer.render(scene, camera);
 }

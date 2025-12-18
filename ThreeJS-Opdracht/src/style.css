@@ -1,5 +1,27 @@
-.canvas{
+canvas{
+  overflow: hidden;
   position: fixed;
   left: 0;
   top: 0; 
+  z-index: 1;
+}
+
+.button-Container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+main{
+  position: absolute;
+  z-index: 99;
+  width: 100vw;
+  width: 100%;
+  margin: 0px auto;
+  height: 100%;
+}
+
+.scroll-button{
+
 }

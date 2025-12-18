@@ -1,31 +1,21 @@
+import { array } from "three/tsl";
+
 const URL = "https://api.discogs.com/users/maxlich07/collection/folders/0/releases";
 
-export async function getDiscogList() {
+export async function FetchDiscogList() {
   try {
-    let allReleases = [];
-    let page = 1;
-    let hasMorePages = true;
-
-    while (hasMorePages) {
-      const response = await fetch(`${URL}?page=${page}`, {
-        headers: {
-          'User-Agent': 'ThreeJSApp/1.0'
-        }
-      });
-      
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status}`);
+    const response = await fetch(URL, {
+      headers: {
+        Authorization: "Discogs token=slXelsFzPmkDSOXLZoxAjegaABgyxeLIzcgQCtlH"
       }
-      
-      const data = await response.json();
-      allReleases = allReleases.concat(data.releases);
-      
-      // Check if there are more pages
-      hasMorePages = data.pagination.page < data.pagination.pages;
-      page++;
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
     }
-
-    return allReleases;
+    
+    const data = await response.json();
+    return data.releases;
   } catch (error) {
     console.error('Failed to fetch Discogs data:', error);
     return [];
