@@ -1,9 +1,9 @@
 import * as THREE from 'three';
 import { FetchDiscogList } from './DiscogList.js';
 import { Loader } from 'three/webgpu';
+import {LoadDiscTexture} from './DiscogList.js';
 
 const fetchedLps = await FetchDiscogList();
-const textureLoader = new THREE.TextureLoader();
 
 const rightButton = document.getElementById('right-button');
 const leftButton = document.getElementById('left-button');
@@ -15,6 +15,11 @@ const camera = new THREE.PerspectiveCamera(90,window.innerWidth / window.innerHe
 const lps = new Array();
 let lpIndex = 0;  
 
+function proxyDiscogsImage(url) {
+  if (typeof url !== 'string') return null;
+  return url.replace('https://i.discogs.com', '/discogs-img');
+}
+
 const renderer = new THREE.WebGLRenderer({
   canvas: document.querySelector('#bg'),
 });
@@ -25,7 +30,7 @@ camera.position.setZ(30);
 
 scene.background = new THREE.Color(0xF7DCAD);
 
-function AddLps(){
+async function AddLps(){
   let position =  0;
   let zPos = 20;
 
@@ -33,13 +38,10 @@ function AddLps(){
 
   for (let i = 0; i < fetchedLps.length; i++) {
     const lpData = fetchedLps[i];
-    const coverImageUrl = lpData.basic_information.cover_image;
 
-    const textureLoader = new THREE.TextureLoader();
-    textureLoader.crossOrigin = 'slXelsFzPmkDSOXLZoxAjegaABgyxeLIzcgQCtlH';
-    const texture = textureLoader.load(coverImageUrl);
+    const coverImageUrl = proxyDiscogsImage(lpData.basic_information.cover_image);
+    const texture = await LoadDiscTexture(coverImageUrl);
 
-    // Create initial materials with placeholder
     const materials = [
       new THREE.MeshBasicMaterial({color: 0xb5110b}), // right
       new THREE.MeshBasicMaterial({color: 0xb5110b}), // left

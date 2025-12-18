@@ -1,4 +1,4 @@
-import { array } from "three/tsl";
+import * as THREE from 'three';
 
 const URL = "https://api.discogs.com/users/maxlich07/collection/folders/0/releases";
 
@@ -6,7 +6,6 @@ export async function FetchDiscogList() {
   try {
     const response = await fetch(URL, {
       headers: {
-        Authorization: "Discogs token=slXelsFzPmkDSOXLZoxAjegaABgyxeLIzcgQCtlH"
       }
     });
     
@@ -20,4 +19,18 @@ export async function FetchDiscogList() {
     console.error('Failed to fetch Discogs data:', error);
     return [];
   }
+}
+
+export async function LoadDiscTexture(url){
+  const response = await fetch(url);
+  const blob = await response.blob();
+  const objectURL = window.URL.createObjectURL(blob);
+
+  return new Promise((resolve)=>{
+    const loader = new THREE.TextureLoader();
+    loader.load(objectURL,(texture)=>{
+      window.URL.revokeObjectURL(objectURL);
+      resolve(texture);
+    })
+  })
 }
