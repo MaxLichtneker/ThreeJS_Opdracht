@@ -4,6 +4,7 @@ import { FetchDiscogList } from './DiscogList.js';
 import {LoadDiscTexture} from './DiscogList.js';
 import {ShootRaycaster} from './Raycast.js'
 import {HandleClick} from './Raycast.js'
+import { directPointLight, element, userData } from 'three/tsl';
 
 //fetch data from discogs api
 const fetchedLps = await FetchDiscogList();
@@ -11,6 +12,7 @@ const fetchedLps = await FetchDiscogList();
 //array that holds all the lp meshes
 const lps = new Array();
 let lpIndex = 0;  
+const movementState = null;
 
 const rightButton = document.getElementById('right-button');
 const leftButton = document.getElementById('left-button');
@@ -60,7 +62,6 @@ async function AddLps(){
     const cube = new THREE.Mesh(geometry, materials);
     cube.position.set(position, 0, zPos);
     position += cube.geometry.parameters.width + 5;
-
     cube.onClick = () =>{
       if(cube.rotation.y < Math.PI){
            cube.userData.rotate = true;
@@ -69,48 +70,28 @@ async function AddLps(){
       }
     }
 
-
     scene.add(cube);
     lps.push(cube);
   }
 }
 
-//moves the lps to the left
-function MoveLeft(){
-  lpIndex--;
+//handles the movement within one function
+function HandleMovement(dir){
+  lpIndex = THREE.MathUtils.clamp(lpIndex, 0, lps.length - 1);
 
-  if(lpIndex < 0){
-    lpIndex = 0;
-    return;
-  }
+  if(lpIndex < 0 || lpIndex > lps.length - 1) return;
 
   const nextLp = lps[0].geometry.parameters.width + 5;
 
   lps.forEach(element => {
     element.userData.move = true;
-    element.userData.target = element.position.x + nextLp;
+    element.userData.direction = dir;
+    element.userData.target = element.position.x - dir * nextLp;
   });
 }
 
-//moves the lps to the right
-function MoveRight(){
-  lpIndex++;  
-
-  if(lpIndex > lps.length - 1){
-  lpIndex = lps.length - 1;
-  return;
-  }
-
-  const nextLp = lps[0].geometry.parameters.width + 5;
-
-  lps.forEach(element => {
-  element.userData.move = true;
-  element.userData.target = element.position.x - nextLp;
-  });
-}
-
-leftButton.addEventListener('click', MoveLeft);
-rightButton.addEventListener('click', MoveRight);
+leftButton.addEventListener('click', () => HandleMovement(-1));
+rightButton.addEventListener('click', () => HandleMovement(1));
 
 window.addEventListener('pointermove', e => ShootRaycaster(camera, scene, e));
 window.addEventListener('click', () => {HandleClick();});
@@ -148,13 +129,16 @@ function SmoothRotate(){
 function SmoothMovement(){
   lps.forEach(element => {
     if(!element.userData.move)return
-    
-    if(element.position.x > element.userData.target)
-    {
-      element.position.x -= 0.1;  
-    }else{
+
+    const direction = element.userData.direction;
+    const delta = element.userData.target - element.position.x;
+
+    if(Math.abs(delta) <= .5){
       element.position.x = element.userData.target;
-      lp.userData.move = false;
+      element.userData.move = false;
+      return;
     }
+
+    element.position.x += Math.sign(delta) * .5;
   });
 }
