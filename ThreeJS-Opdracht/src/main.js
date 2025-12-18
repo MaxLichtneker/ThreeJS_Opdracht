@@ -1,19 +1,24 @@
 import * as THREE from 'three';
-import { FetchDiscogList } from './DiscogList.js';
-import { Loader } from 'three/webgpu';
-import {LoadDiscTexture} from './DiscogList.js';
 
+import { FetchDiscogList } from './DiscogList.js';
+import {LoadDiscTexture} from './DiscogList.js';
+import {ShootRaycaster} from './Raycast.js'
+import {HandleClick} from './Raycast.js'
+
+//fetch data from discogs api
 const fetchedLps = await FetchDiscogList();
+
+//array that holds all the lp meshes
+const lps = new Array();
+let lpIndex = 0;  
 
 const rightButton = document.getElementById('right-button');
 const leftButton = document.getElementById('left-button');
 
+//setup for ThreeJS scene
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(90,window.innerWidth / window.innerHeight,0.1,1000);
-
-const lps = new Array();
-let lpIndex = 0;  
 
 function proxyDiscogsImage(url) {
   if (typeof url !== 'string') return null;
@@ -30,6 +35,7 @@ camera.position.setZ(30);
 
 scene.background = new THREE.Color(0xF7DCAD);
 
+//adds meshes based on the fetched data from discogs and adds images on front face
 async function AddLps(){
   let position =  0;
   let zPos = 20;
@@ -55,6 +61,15 @@ async function AddLps(){
     cube.position.set(position, 0, zPos);
     position += cube.geometry.parameters.width + 5;
 
+    cube.onClick = () =>{
+      if(cube.rotation.y < Math.PI){
+           cube.userData.rotate = true;
+      }else{
+          cube.userData.rotate = false;
+      }
+    }
+
+
     scene.add(cube);
     lps.push(cube);
   }
@@ -69,8 +84,11 @@ function MoveLeft(){
     return;
   }
 
+  const nextLp = lps[0].geometry.parameters.width + 5;
+
   lps.forEach(element => {
-    element.position.x += lps[0].geometry.parameters.width + 5;  
+    element.userData.move = true;
+    element.userData.target = element.position.x + nextLp;
   });
 }
 
@@ -79,26 +97,64 @@ function MoveRight(){
   lpIndex++;  
 
   if(lpIndex > lps.length - 1){
-    lpIndex = lps.length - 1;
-    return;
+  lpIndex = lps.length - 1;
+  return;
   }
 
-  lps.forEach(element => {
-  element.position.x -= lps[0].geometry.parameters.width + 5;  
-  });
+  const nextLp = lps[0].geometry.parameters.width + 5;
 
+  lps.forEach(element => {
+  element.userData.move = true;
+  element.userData.target = element.position.x - nextLp;
+  });
 }
 
 leftButton.addEventListener('click', MoveLeft);
 rightButton.addEventListener('click', MoveRight);
+
+window.addEventListener('pointermove', e => ShootRaycaster(camera, scene, e));
+window.addEventListener('click', () => {HandleClick();});
 
 AddLps();
 
 function animate(){
   requestAnimationFrame(animate);
 
+  SmoothRotate();
+  SmoothMovement();
+
   renderer.render(scene, camera);
 }
 
 
 animate();
+
+//rotates the lps smoothly 
+function SmoothRotate(){
+  lps.forEach(lp => {
+    if(lp.userData.rotate){
+      if(lp.rotation.y < Math.PI){
+        lp.rotation.y += 0.1;
+      }
+    }
+
+    if(!lp.userData.rotate && lp.rotation.y > 0){
+       lp.rotation.y -= 0.1;
+    }
+  });
+}
+
+//moves the lps smoothly to one side or the other
+function SmoothMovement(){
+  lps.forEach(element => {
+    if(!element.userData.move)return
+    
+    if(element.position.x > element.userData.target)
+    {
+      element.position.x -= 0.1;  
+    }else{
+      element.position.x = element.userData.target;
+      lp.userData.move = false;
+    }
+  });
+}
