@@ -59,7 +59,7 @@ async function AddLps(){
       new THREE.MeshBasicMaterial({color: 0xb5110b}), // left
       new THREE.MeshBasicMaterial({color: 0xb5110b}), // top
       new THREE.MeshBasicMaterial({color: 0xb5110b}), // bottom 
-      new THREE.MeshBasicMaterial({map: texture}), // front (placeholder)
+      new THREE.MeshBasicMaterial({map: texture}), // front
       new THREE.MeshBasicMaterial({map: backTexture}), // back
     ];
     const cube = new THREE.Mesh(geometry, materials);
