@@ -4,7 +4,6 @@ import { FetchDiscogList } from './DiscogList.js';
 import {LoadDiscTexture} from './DiscogList.js';
 import {ShootRaycaster} from './Raycast.js'
 import {HandleClick} from './Raycast.js'
-import { directPointLight, element, userData } from 'three/tsl';
 
 //fetch data from discogs api
 const fetchedLps = await FetchDiscogList();
@@ -12,7 +11,6 @@ const fetchedLps = await FetchDiscogList();
 //array that holds all the lp meshes
 const lps = new Array();
 let lpIndex = 0;  
-const movementState = null;
 
 const rightButton = document.getElementById('right-button');
 const leftButton = document.getElementById('left-button');
@@ -37,13 +35,24 @@ camera.position.setZ(30);
 
 scene.background = new THREE.Color(0xF7DCAD);
 
+const ctx = document.getElementById('#bg');
+
+function changeCanvas(){
+  ctx.font = '20pt Arial'
+  ctx.fillStyle = 'white'
+  ctx.fillRect(0, 0, canvasLP.width, canvas.height)
+  ctx.fillStyle = 'black'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText('Tutorialspoint!', canvas.width / 2, canvas.height / 2)
+}
+
 //adds meshes based on the fetched data from discogs and adds images on front face
 async function AddLps(){
   let position =  0;
   let zPos = 20;
 
   const geometry = new THREE.BoxGeometry(10, 10, .1);
-
   for (let i = 0; i < fetchedLps.length; i++) {
     const lpData = fetchedLps[i];
 
@@ -77,17 +86,25 @@ async function AddLps(){
 
 //handles the movement within one function
 function HandleMovement(dir){
-  lpIndex = THREE.MathUtils.clamp(lpIndex, 0, lps.length - 1);
 
-  if(lpIndex < 0 || lpIndex > lps.length - 1) return;
+  
+  if(dir === 1) if(lpIndex >= 0) lpIndex++;
+  else lpIndex = 0
+  if(dir === -1) if(lpIndex <= lps.length -1) lpIndex--;
+  else lpIndex = lps.length - 1
 
-  const nextLp = lps[0].geometry.parameters.width + 5;
+  if(lpIndex >= 0 && lpIndex < lps.length - 1)
+  {
+     const nextLp = lps[0].geometry.parameters.width + 5;
 
-  lps.forEach(element => {
-    element.userData.move = true;
-    element.userData.direction = dir;
-    element.userData.target = element.position.x - dir * nextLp;
-  });
+    lps.forEach(element => {
+      element.userData.move = true;
+      element.userData.direction = dir;
+      element.userData.target = element.position.x - dir * nextLp;
+    });
+  }else{
+    lpIndex = 0
+  }
 }
 
 leftButton.addEventListener('click', () => HandleMovement(-1));

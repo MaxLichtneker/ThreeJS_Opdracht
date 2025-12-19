@@ -1,6 +1,7 @@
 canvas{
   overflow: hidden;
   position: fixed;
+
   left: 0;
   top: 0; 
   z-index: 1;
@@ -22,6 +23,8 @@ main{
   height: 100%;
 }
 
-.scroll-button{
-
+#lp-container{
+  position: block;
+  width: 100%;
+  height: auto;
 }
