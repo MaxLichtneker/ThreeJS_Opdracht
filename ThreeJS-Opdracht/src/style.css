@@ -28,3 +28,9 @@ main{
   width: 100%;
   height: auto;
 }
+
+  #threejs-container {
+  position: block;
+  width: 100%;
+  height: 100%;
+}

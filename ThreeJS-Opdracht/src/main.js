@@ -15,6 +15,10 @@ let lpIndex = 0;
 const rightButton = document.getElementById('right-button');
 const leftButton = document.getElementById('left-button');
 
+const size = 256;
+const container = document.querySelector('#threejs-container')
+const canvas = document.createElement('canvas');
+
 //setup for ThreeJS scene
 const scene = new THREE.Scene();
 
@@ -26,7 +30,8 @@ function proxyDiscogsImage(url) {
 }
 
 const renderer = new THREE.WebGLRenderer({
-  canvas: document.querySelector('#bg'),
+  antialias:true,
+  // canvas: document.querySelector('#bg'),
 });
 
 renderer.setPixelRatio(window.devicePixelRatio);
